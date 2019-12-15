@@ -6,11 +6,17 @@ class Board():
         self.shape_max = row * colum
         self.group = {}
         self.neighbor = [self.__neighbor(i) for i in range(self.shape_max)]
+        self.color_index = {1:1,-1:0}
         self.ban_white = [0 for i in range(row * colum)]
         self.ban_black = [0 for i in range(row * colum)]
         self.ban_board = [self.ban_white,self.ban_black]
+        self.leagle_pos_white = [i for i in range(row * colum)]
+        self.leagle_pos_black = [i for i in range(row * colum)]
+        self.leagle_pos = [self.leagle_pos_white,self.leagle_pos_black]
+        self.available_color = 1
 
-    def add(self,pos,color):
+    def add(self,pos):
+        color = self.available_color
         passed = self.check(pos,color)
         if passed[0]:
             self.value[pos] = color
@@ -27,16 +33,22 @@ class Board():
             for i in new_group:
                 new_family += i
             self.group[new_family + (color,)] = air
+            self.available_color *= -1
+            if pos in self.leagle_pos_black:
+                self.leagle_pos_black.remove(pos)
+            if pos in self.leagle_pos_white:
+                self.leagle_pos_white.remove(pos)
+        elif pos in self.leagle_pos[self.color_index[color]]:
+            self.leagle_pos[self.color_index[color]].remove(pos)
         else:
-            print('error')
-
+            return color
 
     def check(self,pos,color):
         if self.value[pos] == 1:
             return (False,)
-        color_index = int((color + 1) / 2)
+        color_index = self.color_index[color]
         if self.ban_board[color_index][pos] == 1:
-            return False
+            return (False,)
         family = self.__family_detect(pos,color)
         zeros = self.__zero_neighbor_number(pos)
         if zeros > 0:
@@ -50,6 +62,9 @@ class Board():
                 if self.group[f] <= 1:
                     self.ban_board[color_index][pos] = 1
                     return (False,)
+            if sum([color * f[-1] for f in family]) == -len(family) and len(family) != 0:
+                self.ban_board[color_index][pos] = 1
+                return (False,)
         return (True,family,zeros)
 
 
@@ -59,9 +74,9 @@ class Board():
         targ = []
         for n in nb:
             for f in families:
-                if (n in f[:-1]) and f[-1] == color:
+                if (n in f[:-1]):
                     targ.append(f)
-        return targ
+        return list(set(targ))
 
 
     def __neighbor(self,i):
@@ -80,12 +95,19 @@ class Board():
             nei.append(l)
         return tuple(nei)
     def __zero_neighbor_number(self,pos):
-        return sum([abs(self.value[i]) for i in self.neighbor[pos]])
+        return sum([1-abs(self.value[i]) for i in self.neighbor[pos]])
     def show(self):
         print(np.array(self.value).reshape(self.shape))
+    def leagle(self,color):
+        lea = []
+        for i in self.leagle_pos[self.color_index[color]]:
+            if self.check(i,color):
+                lea.append(i)
+        self.leagle_pos[self.color_index[color]] = lea
+        return lea
 if __name__ == '__main__':
-    b = Board(9,9)
-    b.add(12,-1)
-    b.add(11,1)
-    b.add(11,1)
+    b = Board(4,4)
+    for i in [10,1,8,4]:
+        b.add(i)
+    b.check(0,b.available_color)
     b.show()
