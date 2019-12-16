@@ -10,9 +10,9 @@ class Board():
         self.ban_white = [0 for i in range(row * colum)]
         self.ban_black = [0 for i in range(row * colum)]
         self.ban_board = [self.ban_white,self.ban_black]
-        self.leagle_pos_white = [i for i in range(row * colum)]
-        self.leagle_pos_black = [i for i in range(row * colum)]
-        self.leagle_pos = [self.leagle_pos_white,self.leagle_pos_black]
+        self.legal_pos_white = [i for i in range(row * colum)]
+        self.legal_pos_black = [i for i in range(row * colum)]
+        self.legal_pos = [self.legal_pos_white,self.legal_pos_black]
         self.available_color = 1
 
     def add(self,pos):
@@ -34,12 +34,12 @@ class Board():
                 new_family += i
             self.group[new_family + (color,)] = air
             self.available_color *= -1
-            if pos in self.leagle_pos_black:
-                self.leagle_pos_black.remove(pos)
-            if pos in self.leagle_pos_white:
-                self.leagle_pos_white.remove(pos)
-        elif pos in self.leagle_pos[self.color_index[color]]:
-            self.leagle_pos[self.color_index[color]].remove(pos)
+            if pos in self.legal_pos_black:
+                self.legal_pos_black.remove(pos)
+            if pos in self.legal_pos_white:
+                self.legal_pos_white.remove(pos)
+        elif pos in self.legal_pos[self.color_index[color]]:
+            self.legal_pos[self.color_index[color]].remove(pos)
         else:
             return color
 
@@ -98,12 +98,12 @@ class Board():
         return sum([1-abs(self.value[i]) for i in self.neighbor[pos]])
     def show(self):
         print(np.array(self.value).reshape(self.shape))
-    def leagle(self,color):
+    def legal(self,color):
         lea = []
-        for i in self.leagle_pos[self.color_index[color]]:
+        for i in self.legal_pos[self.color_index[color]]:
             if self.check(i,color):
                 lea.append(i)
-        self.leagle_pos[self.color_index[color]] = lea
+        self.legal_pos[self.color_index[color]] = lea
         return lea
 if __name__ == '__main__':
     b = Board(4,4)
